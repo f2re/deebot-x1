@@ -35,20 +35,19 @@ def headers() -> dict[str, str]:
 
 
 async def ha_json(method: str, path: str, payload: Any | None = None) -> Any:
-    async with ClientSession(timeout=TIMEOUT) as session:
-        async with session.request(
-            method,
-            HA_URL + path,
-            headers=headers(),
-            json=payload,
-            ssl=None if HA_VERIFY_TLS else False,
-        ) as resp:
-            text = await resp.text()
-            if resp.status >= 400:
-                raise web.HTTPBadGateway(
-                    text=f"Home Assistant {resp.status}: {text[:500]}"
-                )
-            return json.loads(text) if text else None
+    async with ClientSession(timeout=TIMEOUT) as session, session.request(
+        method,
+        HA_URL + path,
+        headers=headers(),
+        json=payload,
+        ssl=None if HA_VERIFY_TLS else False,
+    ) as resp:
+        text = await resp.text()
+        if resp.status >= 400:
+            raise web.HTTPBadGateway(
+                text=f"Home Assistant {resp.status}: {text[:500]}"
+            )
+        return json.loads(text) if text else None
 
 
 async def discover(app: web.Application, force: bool = False) -> dict[str, str | None]:
@@ -200,54 +199,53 @@ async def ws_areas(app: web.Application) -> list[dict[str, str]]:
         HA_URL.replace("https://", "wss://").replace("http://", "ws://")
         + "/api/websocket"
     )
-    async with ClientSession(timeout=TIMEOUT) as session:
-        async with session.ws_connect(
-            ws_url, heartbeat=20, ssl=None if HA_VERIFY_TLS else False
-        ) as ws:
-            first = await ws.receive_json()
-            if first.get("type") != "auth_required":
-                raise RuntimeError("unexpected websocket greeting")
-            await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
-            auth = await ws.receive_json()
-            if auth.get("type") != "auth_ok":
-                raise RuntimeError("Home Assistant websocket authentication failed")
+    async with ClientSession(timeout=TIMEOUT) as session, session.ws_connect(
+        ws_url, heartbeat=20, ssl=None if HA_VERIFY_TLS else False
+    ) as ws:
+        first = await ws.receive_json()
+        if first.get("type") != "auth_required":
+            raise RuntimeError("unexpected websocket greeting")
+        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
+        auth = await ws.receive_json()
+        if auth.get("type") != "auth_ok":
+            raise RuntimeError("Home Assistant websocket authentication failed")
 
-            await ws.send_json(
-                {"id": 1, "type": "config/entity_registry/get", "entity_id": vacuum}
-            )
-            entry = None
-            while True:
-                msg = await ws.receive()
-                if msg.type != WSMsgType.TEXT:
-                    raise RuntimeError("websocket closed")
-                data = json.loads(msg.data)
-                if data.get("id") == 1:
-                    if not data.get("success"):
-                        raise RuntimeError(str(data))
-                    entry = data.get("result") or {}
-                    break
+        await ws.send_json(
+            {"id": 1, "type": "config/entity_registry/get", "entity_id": vacuum}
+        )
+        entry = None
+        while True:
+            msg = await ws.receive()
+            if msg.type != WSMsgType.TEXT:
+                raise RuntimeError("websocket closed")
+            data = json.loads(msg.data)
+            if data.get("id") == 1:
+                if not data.get("success"):
+                    raise RuntimeError(str(data))
+                entry = data.get("result") or {}
+                break
 
-            options = (entry or {}).get("options") or {}
-            mapping = ((options.get("vacuum") or {}).get("area_mapping") or {})
-            mapped_area_ids = set(mapping.keys())
-            if not mapped_area_ids:
-                return []
+        options = (entry or {}).get("options") or {}
+        mapping = ((options.get("vacuum") or {}).get("area_mapping") or {})
+        mapped_area_ids = set(mapping.keys())
+        if not mapped_area_ids:
+            return []
 
-            await ws.send_json({"id": 2, "type": "config/area_registry/list"})
-            while True:
-                msg = await ws.receive()
-                if msg.type != WSMsgType.TEXT:
-                    raise RuntimeError("websocket closed")
-                data = json.loads(msg.data)
-                if data.get("id") == 2:
-                    if not data.get("success"):
-                        raise RuntimeError(str(data))
-                    areas = data.get("result", [])
-                    return [
-                        {"id": item["area_id"], "name": item.get("name") or item["area_id"]}
-                        for item in areas
-                        if item.get("area_id") in mapped_area_ids
-                    ]
+        await ws.send_json({"id": 2, "type": "config/area_registry/list"})
+        while True:
+            msg = await ws.receive()
+            if msg.type != WSMsgType.TEXT:
+                raise RuntimeError("websocket closed")
+            data = json.loads(msg.data)
+            if data.get("id") == 2:
+                if not data.get("success"):
+                    raise RuntimeError(str(data))
+                areas = data.get("result", [])
+                return [
+                    {"id": item["area_id"], "name": item.get("name") or item["area_id"]}
+                    for item in areas
+                    if item.get("area_id") in mapped_area_ids
+                ]
 
 
 async def api_areas(request: web.Request) -> web.Response:
@@ -282,19 +280,18 @@ async def get_map_bytes(app: web.Application) -> tuple[bytes, str]:
     map_entity = ent.get("map")
     if not map_entity:
         raise web.HTTPNotFound(text="map image entity not found")
-    async with ClientSession(timeout=TIMEOUT) as session:
-        async with session.get(
-            HA_URL + f"/api/image_proxy/{map_entity}",
-            headers=headers(),
-            ssl=None if HA_VERIFY_TLS else False,
-        ) as resp:
-            if resp.status >= 400:
-                raise web.HTTPBadGateway(
-                    text=f"Home Assistant map proxy returned {resp.status}"
-                )
-            return await resp.read(), resp.headers.get(
-                "content-type", "image/svg+xml"
+    async with ClientSession(timeout=TIMEOUT) as session, session.get(
+        HA_URL + f"/api/image_proxy/{map_entity}",
+        headers=headers(),
+        ssl=None if HA_VERIFY_TLS else False,
+    ) as resp:
+        if resp.status >= 400:
+            raise web.HTTPBadGateway(
+                text=f"Home Assistant map proxy returned {resp.status}"
             )
+        return await resp.read(), resp.headers.get(
+            "content-type", "image/svg+xml"
+        )
 
 
 async def api_map(request: web.Request) -> web.Response:
