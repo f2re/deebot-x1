@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: dashboard/requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install checks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          python -m pip install --upgrade pip
+          python -m pip install -r dashboard/requirements.txt PyYAML ruff
+
+      - name: Shellcheck
+        run: shellcheck -x ./*.sh scripts/*.sh
+
+      - name: Python lint
+        run: ruff check dashboard tests
+
+      - name: Python tests
+        run: python -m unittest discover -s tests -v
+
+      - name: JavaScript syntax
+        run: node --check dashboard/static/app.js
+
+      - name: YAML syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          yaml.safe_load(Path("docker-compose.dashboard.yml").read_text())
+          yaml.safe_load(Path(".github/workflows/ci.yml").read_text())
+          PY
+
+      - name: Docker Compose syntax
+        run: |
+          cat > .dashboard.env <<'EOF_ENV'
+          HA_URL=http://127.0.0.1:8123
+          HA_TOKEN=test
+          HA_VERIFY_TLS=1
+          VACUUM_ENTITY=vacuum.deebot_x1
+          MAP_ENTITY=image.deebot_x1_map
+          DASHBOARD_HOST=127.0.0.1
+          DASHBOARD_PORT=8090
+          ARCHIVE_DIR=/data/maps
+          ARCHIVE_INTERVAL=180
+          ARCHIVE_KEEP=80
+          EOF_ENV
+          docker compose -f docker-compose.dashboard.yml config >/dev/null
