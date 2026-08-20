@@ -1,0 +1,28 @@
+# Runtime secrets / local state
+.install.env
+.dashboard.env
+*.env
+!.env.example
+
+# Runtime data and vendored upstream
+vendor/
+data/
+backups/
+ha-export/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Diagnostics / archives
+*.tar.gz
+*.zip
+*.log
