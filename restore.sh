@@ -37,6 +37,7 @@ if [[ -f "$INSTALL_DIR/.install.env" ]]; then
   fi
 fi
 
+"$INSTALL_DIR/scripts/prepare-bumper-compose.sh"
 (cd "$BUMPER" && docker compose up -d bumper)
 if [[ -s "$TMP/bumper-data.tar" ]]; then
   sleep 2

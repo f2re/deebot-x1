@@ -2,7 +2,9 @@
 # Замените DEEBOT_IP и BUMPER_IP реальными адресами.
 # Синтаксис специально не привязан к MikroTik/OpenWrt/UniFi/pfSense.
 
-DEEBOT_IP -> BUMPER_IP tcp 80,443,8007,8883 ALLOW
+# X1: host-порт 80 не нужен. 443 нужен для Ecovacs HTTPS/MQTT SNI;
+# 8007/8883 оставлены для локального REST/MQTTS контура и Home Assistant.
+DEEBOT_IP -> BUMPER_IP tcp 443,8007,8883 ALLOW
 DEEBOT_IP -> BUMPER_IP udp/tcp 53 ALLOW   # если DNS на той же Raspberry Pi
 DEEBOT_IP -> LOCAL_NTP udp 123 ALLOW      # опционально
 DEEBOT_IP -> WAN any DENY

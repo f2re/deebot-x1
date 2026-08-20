@@ -42,6 +42,7 @@ else
   git -C "$BUMPER" checkout --detach "$TARGET"
 fi
 
+"$INSTALL_DIR/scripts/prepare-bumper-compose.sh"
 (cd "$BUMPER" && bash scripts/create-cert.sh)
 (cd "$BUMPER" && docker compose config >/dev/null && docker compose up -d --build)
 [[ -f "$INSTALL_DIR/.dashboard.env" ]] && (cd "$INSTALL_DIR" && docker compose -f docker-compose.dashboard.yml up -d --build)
