@@ -1,0 +1,10 @@
+services:
+  dashboard:
+    build: ./dashboard
+    container_name: deebot-x1-dashboard
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - .dashboard.env
+    volumes:
+      - ./data/maps:/data/maps

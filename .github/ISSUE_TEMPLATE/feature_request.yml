@@ -1,0 +1,17 @@
+name: Улучшение
+about: Предложить новую локальную функцию или улучшение интерфейса
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Что нужно сделать
+      description: Опишите пользовательский сценарий и ожидаемый результат.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Модель/прошивка X1, версия Home Assistant, ограничения сети.

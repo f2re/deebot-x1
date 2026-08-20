@@ -1,0 +1,15 @@
+# Общая логика firewall после успешного офлайн-теста.
+# Замените DEEBOT_IP и BUMPER_IP реальными адресами.
+# Синтаксис специально не привязан к MikroTik/OpenWrt/UniFi/pfSense.
+
+DEEBOT_IP -> BUMPER_IP tcp 80,443,8007,8883 ALLOW
+DEEBOT_IP -> BUMPER_IP udp/tcp 53 ALLOW   # если DNS на той же Raspberry Pi
+DEEBOT_IP -> LOCAL_NTP udp 123 ALLOW      # опционально
+DEEBOT_IP -> WAN any DENY
+
+# Не включать WAN DENY, пока не проверены:
+# - карта
+# - уборка комнаты
+# - общая уборка
+# - пауза
+# - возврат на станцию
