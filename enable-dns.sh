@@ -3,6 +3,7 @@ set -Eeuo pipefail
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
 [[ ${EUID} -eq 0 ]] || { echo "Запустите через sudo" >&2; exit 1; }
 [[ -f "$INSTALL_DIR/.install.env" ]] || { echo "Сначала выполните install.sh" >&2; exit 1; }
+# shellcheck source=/dev/null
 . "$INSTALL_DIR/.install.env"
 
 IFACE="$(ip route show default | awk 'NR==1{print $5}')"

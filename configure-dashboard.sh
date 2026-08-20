@@ -3,6 +3,7 @@ set -Eeuo pipefail
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
 [[ ${EUID} -eq 0 ]] || { echo "Запустите через sudo" >&2; exit 1; }
 [[ -f "$INSTALL_DIR/.install.env" ]] || { echo "Сначала install.sh" >&2; exit 1; }
+# shellcheck source=/dev/null
 . "$INSTALL_DIR/.install.env"
 
 HA_URL_NEW="${HA_URL:-}"
@@ -34,13 +35,14 @@ if [[ -z "$HA_URL_NEW" ]]; then
 fi
 HA_URL_NEW="${HA_URL_NEW%/}"
 [[ "$HA_URL_NEW" =~ ^https?:// ]] || { echo "HA URL должен начинаться с http:// или https://" >&2; exit 2; }
-[[ "$DASHBOARD_PORT" =~ ^[0-9]+$ ]] && ((DASHBOARD_PORT>=1 && DASHBOARD_PORT<=65535)) || { echo "Некорректный порт" >&2; exit 2; }
+if ! [[ "$DASHBOARD_PORT" =~ ^[0-9]+$ ]] || ((DASHBOARD_PORT < 1 || DASHBOARD_PORT > 65535)); then
+  echo "Некорректный порт" >&2
+  exit 2
+fi
 
 if [[ -n "$TOKEN_ARG" ]]; then
   HA_TOKEN="$TOKEN_ARG"
-elif [[ -n "${HA_TOKEN:-}" ]]; then
-  HA_TOKEN="$HA_TOKEN"
-else
+elif [[ -z "${HA_TOKEN:-}" ]]; then
   read -r -s -p "Home Assistant Long-Lived Access Token: " HA_TOKEN
   echo
 fi

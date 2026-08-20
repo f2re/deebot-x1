@@ -3,6 +3,7 @@ set -Eeuo pipefail
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
 [[ ${EUID} -eq 0 ]] || { echo "sudo required" >&2; exit 1; }
 [[ -f "$INSTALL_DIR/.install.env" ]] || { echo "Сначала install.sh" >&2; exit 1; }
+# shellcheck source=/dev/null
 . "$INSTALL_DIR/.install.env"
 BUMPER="$INSTALL_DIR/vendor/bumper"
 [[ -d "$BUMPER/.git" ]] || { echo "Bumper repository not found" >&2; exit 2; }

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
+# shellcheck source=/dev/null
 [[ -f "$INSTALL_DIR/.install.env" ]] && . "$INSTALL_DIR/.install.env"
 SERVER_IP="${SERVER_IP:-127.0.0.1}"
 BUMPER="$INSTALL_DIR/vendor/bumper"
@@ -14,7 +15,7 @@ echo
 
 echo "--- Local ports (HA :8123 не обязателен на этом хосте) ---"
 for p in 443 8007 8883 1883 5223 8090 53; do
-  if ss -lntup 2>/dev/null | grep -Eq "[:.]$p[[:space:]]"; then echo "OK   $p"; else echo "MISS $p"; fi
+  if ss -lntup 2>/dev/null | grep -Eq "[:.]${p}[[:space:]]"; then echo "OK   $p"; else echo "MISS $p"; fi
 done
 
 echo; echo "--- Docker ---"

@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
 [[ -f "$INSTALL_DIR/.install.env" ]] || { echo "Сначала install.sh" >&2; exit 1; }
+# shellcheck source=/dev/null
 . "$INSTALL_DIR/.install.env"
 HA_URL_CHECK="${HA_URL:-}"
 [[ -n "$HA_URL_CHECK" ]] || { echo "HA URL не задан. Выполните: sudo $INSTALL_DIR/configure-ha.sh http://HA:8123" >&2; exit 2; }
@@ -10,7 +11,10 @@ TOKEN="${HA_TOKEN:-}"
 VERIFY=1
 if [[ -f "$INSTALL_DIR/.dashboard.env" ]]; then
   # Читаем только локально; значение токена не печатается.
-  set -a; . "$INSTALL_DIR/.dashboard.env"; set +a
+  set -a
+  # shellcheck source=/dev/null
+  . "$INSTALL_DIR/.dashboard.env"
+  set +a
   TOKEN="${TOKEN:-${HA_TOKEN:-}}"
   VERIFY="${HA_VERIFY_TLS:-1}"
 fi

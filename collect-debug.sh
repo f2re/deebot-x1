@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
+# shellcheck source=/dev/null
 [[ -f "$INSTALL_DIR/.install.env" ]] && . "$INSTALL_DIR/.install.env"
 OUT="${1:-/tmp/deebot-x1-debug-$(date +%Y%m%d-%H%M%S).tar.gz}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
@@ -24,8 +25,12 @@ if [[ -n "${HA_URL:-}" ]]; then
   curl -k -sS --max-time 5 -o /dev/null -w 'status=%{http_code}\n' "${HA_URL%/}/api/" > "$TMP/homeassistant-reachability.txt" 2>&1 || true
 fi
 BUMPER="$INSTALL_DIR/vendor/bumper"
-[[ -d "$BUMPER" ]] && (cd "$BUMPER" && docker compose logs --no-color --tail=1500 bumper nginx) > "$TMP/bumper.log" 2>&1 || true
-[[ -f "$INSTALL_DIR/.dashboard.env" ]] && (cd "$INSTALL_DIR" && docker compose -f docker-compose.dashboard.yml logs --no-color --tail=500 dashboard) > "$TMP/dashboard.log" 2>&1 || true
+if [[ -d "$BUMPER" ]]; then
+  (cd "$BUMPER" && docker compose logs --no-color --tail=1500 bumper nginx) > "$TMP/bumper.log" 2>&1 || true
+fi
+if [[ -f "$INSTALL_DIR/.dashboard.env" ]]; then
+  (cd "$INSTALL_DIR" && docker compose -f docker-compose.dashboard.yml logs --no-color --tail=500 dashboard) > "$TMP/dashboard.log" 2>&1 || true
+fi
 # Не включаем .env, HA token, сертификатные ключи и любые файлы внешнего Home Assistant.
 tar -C "$TMP" -czf "$OUT" .
 chmod 600 "$OUT"

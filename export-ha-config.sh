@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 INSTALL_DIR="${INSTALL_DIR:-/opt/deebot-x1-local}"
 [[ -f "$INSTALL_DIR/.install.env" ]] || { echo "Сначала install.sh" >&2; exit 1; }
+# shellcheck source=/dev/null
 . "$INSTALL_DIR/.install.env"
 TARGET=""
 COPY_MODE=0
