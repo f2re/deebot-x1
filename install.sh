@@ -184,17 +184,19 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 docker compose version >/dev/null 2>&1 || die "Не удалось установить Docker Compose v2"
 
-# HA может находиться на том же хосте: его 8123 никогда не считаем конфликтом.
+# Для X1 на хост публикуются только необходимые порты:
+# 443 = Ecovacs HTTPS/MQTT через SNI, 8007 = REST, 8883 = MQTTS для HA.
+# Порт 80, plain MQTT 1883 и XMPP 5223 остаются внутренними и не занимают хост.
 if [[ ! -f "$INSTALL_DIR/.install.env" ]]; then
   conflicts=()
-  ports=(80 443 8007 1883 8883 5223)
+  ports=(443 8007 8883)
   [[ "$DASHBOARD_ENABLED" == yes ]] && ports+=(8090)
   for p in "${ports[@]}"; do
     if ss -H -ltn "sport = :$p" 2>/dev/null | grep -q .; then conflicts+=("$p"); fi
   done
   if ((${#conflicts[@]})); then
-    warn "Уже заняты TCP-порты Bumper/PWA: ${conflicts[*]}"
-    warn "Home Assistant на :8123 не затрагивается и не входит в эту проверку."
+    warn "Уже заняты необходимые TCP-порты Bumper/PWA: ${conflicts[*]}"
+    warn "Для DEEBOT X1 порт 80 не используется и намеренно не публикуется. Home Assistant :8123 также не затрагивается."
     [[ "${ALLOW_PORT_CONFLICTS:-0}" == 1 ]] || exit 2
   fi
 fi
@@ -218,7 +220,9 @@ else
 fi
 
 BUMPER="$INSTALL_DIR/vendor/bumper"
+"$INSTALL_DIR/scripts/prepare-bumper-compose.sh"
 cat > "$BUMPER/.env" <<EOFENV
+COMPOSE_FILE=docker-compose.x1.yaml
 NETWORK_MODE=bridge
 BUMPER_ANNOUNCE_IP=$SERVER_IP
 BUMPER_LISTEN=0.0.0.0
@@ -287,6 +291,9 @@ if [[ "$DASHBOARD_ENABLED" == yes ]]; then
   "$INSTALL_DIR/configure-dashboard.sh" --ha-url "$HA_URL"
 fi
 
+HOST_PORTS="443/tcp, 8007/tcp, 8883/tcp"
+[[ "$DASHBOARD_ENABLED" == yes ]] && HOST_PORTS+=", 8090/tcp"
+
 cat <<EOFMSG
 
 Базовая установка завершена.
@@ -294,6 +301,8 @@ cat <<EOFMSG
 Bumper:          http://$SERVER_IP:8007/
 Home Assistant:  ${HA_URL:-не управляется этим пакетом}
 Отдельная PWA:   ${DASHBOARD_ENABLED}
+Host-порты:      $HOST_PORTS
+Порт 80:         не используется
 
 Пакет НЕ устанавливал и НЕ изменял Home Assistant.
 
