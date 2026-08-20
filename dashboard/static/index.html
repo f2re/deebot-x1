@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>DEEBOT X1</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><div class="eyebrow">Локальное управление</div><h1 id="name">DEEBOT X1</h1></div>
+      <div class="battery"><span id="battery">—</span><small>%</small></div>
+    </header>
+
+    <section class="map-card card">
+      <div class="map-head"><span id="state" class="state">Подключение…</span><button id="refresh" class="ghost">Обновить</button></div>
+      <div class="map-wrap"><img id="map" alt="Карта квартиры"><div id="mapEmpty" class="map-empty">Карта появится после подключения Ecovacs в Home Assistant</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Куда убрать</h2>
+      <p class="sub">Выберите одну или несколько комнат.</p>
+      <div id="areas" class="areas"><span class="muted">Загрузка комнат…</span></div>
+      <button id="cleanAreas" class="primary" disabled>Убрать выбранное</button>
+    </section>
+
+    <section class="controls">
+      <button data-action="start" class="control"><span>▶</span><b>Везде</b></button>
+      <button data-action="pause" class="control"><span>Ⅱ</span><b>Пауза</b></button>
+      <button data-action="home" class="control"><span>⌂</span><b>На базу</b></button>
+    </section>
+
+    <div id="toast" class="toast"></div>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

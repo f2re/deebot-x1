@@ -1,0 +1,41 @@
+name: Ошибка
+about: Сообщить о проблеме установки или работы DEEBOT X1 Local
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Не публикуйте HA-токены, приватные ключи и содержимое `.storage`.
+  - type: input
+    id: model
+    attributes:
+      label: Модель робота
+      placeholder: DEEBOT X1 Omni
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Прошивка робота
+      placeholder: 2.3.9
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Сервер
+      placeholder: Raspberry Pi OS 64-bit / Debian 12 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Что произошло
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Диагностика
+      description: Приложите вывод diagnose.sh или архив collect-debug.sh после проверки содержимого.

@@ -1,0 +1,8 @@
+# Если в инфраструктуре уже есть Caddy и локальный DNS:
+# deebot.home.arpa {
+#     tls internal
+#     reverse_proxy 127.0.0.1:8090
+# }
+#
+# В этом случае PWA лучше запускать только на loopback:
+# sudo configure-dashboard.sh --listen 127.0.0.1
